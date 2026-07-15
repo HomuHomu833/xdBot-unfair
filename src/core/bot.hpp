@@ -133,6 +133,7 @@ class Bot {
     bool stopPlaying = false;
     bool tpsEnabled = false;
     float tps = 240.f;
+    bool cbsSupport = false;
     bool clickBetweenFramesWasEnabled = false;
     bool clickBetweenStepsWasEnabled = false;
     bool clickBetweenFramesAutoDisabled = false;

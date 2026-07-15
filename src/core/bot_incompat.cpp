@@ -66,12 +66,17 @@ void bot_incompat::autoDisableBotSettings() {
 
     auto* gameManager = GameManager::sharedState();
     if (gameManager) {
-        if (!bot.clickBetweenStepsAutoDisabled) {
-            bot.clickBetweenStepsWasEnabled =
-                gameManager->getGameVariable(GameVar::ClickBetweenSteps);
-            bot.clickBetweenStepsAutoDisabled = true;
+        // With CBS support enabled the bot keeps Click Between Steps on and instead
+        // resolves every physics step individually (see BotUpdater::runScheduler), so
+        // there is nothing to disable here.
+        if (!bot.cbsSupport) {
+            if (!bot.clickBetweenStepsAutoDisabled) {
+                bot.clickBetweenStepsWasEnabled =
+                    gameManager->getGameVariable(GameVar::ClickBetweenSteps);
+                bot.clickBetweenStepsAutoDisabled = true;
+            }
+            gameManager->setGameVariable(GameVar::ClickBetweenSteps, false);
         }
-        gameManager->setGameVariable(GameVar::ClickBetweenSteps, false);
 
         if (auto* pl = PlayLayer::get(); pl && pl->m_isPlatformer) {
             if (!bot.disableCheckpointsAutoDisabled) {
@@ -237,10 +242,12 @@ bool enabledIncompatibleGDSettings() {
     }
 
     std::vector<std::string> settingsToDisable;
-    if (GameManager::sharedState()->getGameVariable(GameVar::ClickBetweenSteps))
-        settingsToDisable.push_back("Click Between Steps");
-    if (hasClickBetweenStepsLevelOverride())
-        settingsToDisable.push_back("Click Between Steps (Level Settings Override)");
+    if (!bot.cbsSupport) {
+        if (GameManager::sharedState()->getGameVariable(GameVar::ClickBetweenSteps))
+            settingsToDisable.push_back("Click Between Steps");
+        if (hasClickBetweenStepsLevelOverride())
+            settingsToDisable.push_back("Click Between Steps (Level Settings Override)");
+    }
     if (!settingsToDisable.empty())
         showIncompatWarning("The following GD settings are incompatible: ", settingsToDisable);
     bool hasIncompat = !settingsToDisable.empty();

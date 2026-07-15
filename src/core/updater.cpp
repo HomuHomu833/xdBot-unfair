@@ -220,7 +220,15 @@ void BotUpdater::runScheduler(float dt, SchedulerUpdate const& update) {
         return;
     }
 
-    if (!bot.lockDelta) {
+    // When Click Between Steps support is active the bot must resolve each physics
+    // step individually (like real-time lock delta) so that inputs CBS applies partway
+    // through a visual frame are recorded/replayed at their true step instead of being
+    // aliased to the frame boundary.
+    bool cbsStepping = bot.cbsSupport && bot.state != state::none;
+    bool stepPerTick = bot.lockDelta || cbsStepping;
+    bool realTimeStepping = bot.lockDeltaRealTime || cbsStepping;
+
+    if (!stepPerTick) {
         resetStepState();
         update(dt * speedhack);
         finishTrajectoryUpdate();
@@ -240,7 +248,7 @@ void BotUpdater::runScheduler(float dt, SchedulerUpdate const& update) {
         stepLimit *= std::max(1, modifier);
     }
 
-    if (!bot.lockDeltaRealTime)
+    if (!realTimeStepping)
         steps = std::min(steps, stepLimit);
 
     if (steps <= 0) {
@@ -249,7 +257,7 @@ void BotUpdater::runScheduler(float dt, SchedulerUpdate const& update) {
     }
 
     overflow -= static_cast<double>(steps) * timestep;
-    if (!bot.lockDeltaRealTime && steps == stepLimit)
+    if (!realTimeStepping && steps == stepLimit)
         overflow = 0.0;
 
     updating = true;
