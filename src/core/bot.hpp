@@ -133,6 +133,8 @@ class Bot {
     bool stopPlaying = false;
     bool tpsEnabled = false;
     float tps = 240.f;
+    // Runtime-computed each time recording/playing starts: mirrors GD's Click
+    // Between Steps state while recording, and the loaded macro's flag while playing.
     bool cbsSupport = false;
     bool clickBetweenFramesWasEnabled = false;
     bool clickBetweenStepsWasEnabled = false;

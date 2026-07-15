@@ -254,12 +254,6 @@
 			"description": "Scales the max UPR cap by the current visual FPS when lock delta real time is disabled.",
 			"type": "bool",
 			"default": true
-		},
-		"cbs_support": {
-			"name": "Click Between Steps Support",
-			"description": "Records and plays macros with Click Between Steps enabled instead of forcing it off. While active the bot resolves every physics step individually so CBS's per-step input timing is captured. Experimental.",
-			"type": "bool",
-			"default": false
 		}
 	},
 	"resources": {

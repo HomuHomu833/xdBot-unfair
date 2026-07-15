@@ -57,14 +57,6 @@ $execute {
         bot.updater.resetStepState();
     }, mod);
 
-    geode::listenForSettingChanges<bool>("cbs_support", +[](bool value) {
-        if (Bot::isBootstrapping())
-            return;
-        auto& bot = Bot::get();
-        bot.cbsSupport = value;
-        bot.updater.resetStepState();
-    }, mod);
-
     geode::listenForSettingChanges<bool>("auto_stop_playing", +[](bool value) {
         if (Bot::isBootstrapping())
             return;

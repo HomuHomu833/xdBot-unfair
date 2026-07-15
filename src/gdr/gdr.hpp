@@ -86,6 +86,9 @@ struct BotReplay : gdr::Replay<BotReplay, ReplayInput> {
     uintptr_t seed = 0;
     bool xdBotMacro = true;
     bool isLegacy = false;
+    // Whether this macro was recorded with Click Between Steps enabled. Persisted
+    // in the GDR2 extension block (appended last for backwards compatibility).
+    bool clickBetweenSteps = false;
 
     std::vector<gdr_legacy::FrameFix> frameFixes;
 

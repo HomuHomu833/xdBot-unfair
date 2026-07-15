@@ -219,6 +219,10 @@ void BotReplay::saveExtension(binary_writer& writer) const {
         writer << fix.p2.rotation;
         writer << fix.p2.rotate;
     }
+
+    // Appended after the frame fixes so older readers (which stop after the fixes)
+    // stay compatible, and macros saved before this field simply omit it.
+    writer << clickBetweenSteps;
 }
 
 void BotReplay::parseExtension(binary_reader& reader) {
@@ -245,6 +249,11 @@ void BotReplay::parseExtension(binary_reader& reader) {
 
         frameFixes.push_back(fix);
     }
+
+    // Optional trailing field; macros recorded before it omit it entirely.
+    clickBetweenSteps = false;
+    if (!reader.empty())
+        reader >> clickBetweenSteps;
 }
 
 cocos2d::CCPoint dataFromString(std::string dataString) {

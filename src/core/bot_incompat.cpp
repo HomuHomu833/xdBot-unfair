@@ -3,6 +3,8 @@
 #include "bot.hpp"
 #include "../ui/game/game_ui.hpp"
 
+#include <Geode/ui/Notification.hpp>
+
 namespace {
 struct IncompatibleSetting {
     std::string id;
@@ -38,6 +40,8 @@ void bot_incompat::restoreAutoDisabledSettings() {
         bot.clickBetweenFramesAutoDisabled = false;
     }
 
+    bot.cbsSupport = false;
+
     auto* gameManager = GameManager::sharedState();
     if (gameManager && bot.clickBetweenStepsAutoDisabled) {
         gameManager->setGameVariable(GameVar::ClickBetweenSteps,
@@ -66,16 +70,30 @@ void bot_incompat::autoDisableBotSettings() {
 
     auto* gameManager = GameManager::sharedState();
     if (gameManager) {
-        // With CBS support enabled the bot keeps Click Between Steps on and instead
-        // resolves every physics step individually (see BotUpdater::runScheduler), so
-        // there is nothing to disable here.
-        if (!bot.cbsSupport) {
+        // Click Between Steps is supported rather than blanket-disabled. While playing,
+        // force CBS to match the state the macro was recorded with (enable it for CBS
+        // macros, disable it otherwise) so playback stays deterministic; while recording,
+        // simply mirror whatever the player currently has set. When bot.cbsSupport is on,
+        // BotUpdater::runScheduler resolves every physics step individually so CBS's
+        // per-step input timing is captured/reproduced. The previous value is saved so
+        // restoreAutoDisabledSettings can put it back.
+        bool cbsCurrentlyOn = clickBetweenStepsEnabled();
+        bool wantCbs =
+            (bot.state == state::playing) ? bot.replay.clickBetweenSteps : cbsCurrentlyOn;
+        bot.cbsSupport = wantCbs;
+
+        if (wantCbs != cbsCurrentlyOn) {
             if (!bot.clickBetweenStepsAutoDisabled) {
                 bot.clickBetweenStepsWasEnabled =
                     gameManager->getGameVariable(GameVar::ClickBetweenSteps);
                 bot.clickBetweenStepsAutoDisabled = true;
             }
-            gameManager->setGameVariable(GameVar::ClickBetweenSteps, false);
+            gameManager->setGameVariable(GameVar::ClickBetweenSteps, wantCbs);
+
+            if (bot.state == state::playing && wantCbs)
+                Notification::create("Enabled Click Between Steps for this macro",
+                                     NotificationIcon::Info)
+                    ->show();
         }
 
         if (auto* pl = PlayLayer::get(); pl && pl->m_isPlatformer) {
@@ -210,6 +228,12 @@ bool hasClickBetweenStepsLevelOverride() {
 }
 namespace bot_incompat {
 
+bool clickBetweenStepsEnabled() {
+    auto* gameManager = GameManager::sharedState();
+    bool gameVar = gameManager && gameManager->getGameVariable(GameVar::ClickBetweenSteps);
+    return gameVar || hasClickBetweenStepsLevelOverride();
+}
+
 bool hasIncompatibleMods() {
     std::vector<std::string> modsToDisable;
     std::vector<std::string> settingsToDisable;
@@ -241,19 +265,9 @@ bool enabledIncompatibleGDSettings() {
         return false;
     }
 
-    std::vector<std::string> settingsToDisable;
-    if (!bot.cbsSupport) {
-        if (GameManager::sharedState()->getGameVariable(GameVar::ClickBetweenSteps))
-            settingsToDisable.push_back("Click Between Steps");
-        if (hasClickBetweenStepsLevelOverride())
-            settingsToDisable.push_back("Click Between Steps (Level Settings Override)");
-    }
-    if (!settingsToDisable.empty())
-        showIncompatWarning("The following GD settings are incompatible: ", settingsToDisable);
-    bool hasIncompat = !settingsToDisable.empty();
-    if (hasIncompat)
-        resetBotStateOnIncompat();
-    return hasIncompat;
+    // Click Between Steps is now supported (see autoDisableBotSettings), so it is no
+    // longer treated as an incompatible GD setting.
+    return false;
 }
 
 } // namespace bot_incompat

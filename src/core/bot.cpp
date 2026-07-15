@@ -236,6 +236,9 @@ void Bot::updateMacroInfo(PlayLayer* pl) {
     replay.botInfo.name = "xdBot";
     replay.botInfo.version = getModVersionInt();
     replay.xdBotMacro = true;
+
+    if (Bot::get().state == state::recording)
+        replay.clickBetweenSteps = bot_incompat::clickBetweenStepsEnabled();
 }
 
 void Bot::updateMacroTPS() {
