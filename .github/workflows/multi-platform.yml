@@ -3,8 +3,6 @@ name: Build Geode Mod
 on:
   workflow_dispatch:
   push:
-    branches:
-      - "main"
 
 jobs:
   build:
@@ -14,7 +12,6 @@ jobs:
         config:
         - name: Windows
           os: windows-latest
-          build-type: RelWithDebInfo
           
         - name: macOS
           os: macos-latest
@@ -41,7 +38,7 @@ jobs:
         uses: geode-sdk/build-geode-mod@main
         with:
           bindings: geode-sdk/bindings
-          build-config: ${{ matrix.config.build-type || 'Release' }}
+          build-config: RelWithDebInfo
           export-pdb: true
           bindings-ref: main
           combine: true
