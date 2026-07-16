@@ -59,7 +59,7 @@ void runFastLockDeltaUpdates(Bot& bot, int steps, double physicsDt, Callback&& r
         int safeSteps = steps;
 
         if (bot.currentAction < bot.replay.inputs.size()) {
-            auto nextInputFrame = bot.replay.inputs[bot.currentAction].frame;
+            auto nextInputFrame = Bot::getInputPlaybackFrame(bot.currentAction);
 
             if (nextInputFrame > static_cast<uint64_t>(currentFrame)) {
                 auto frameGap = nextInputFrame - static_cast<uint64_t>(currentFrame);

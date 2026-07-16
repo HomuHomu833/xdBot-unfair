@@ -254,6 +254,15 @@
 			"description": "Scales the max UPR cap by the current visual FPS when lock delta real time is disabled.",
 			"type": "bool",
 			"default": true
+		},
+		"click_randomization": {
+			"name": "Click Randomization",
+			"description": "Randomizes the timing of every click by up to this many milliseconds (in either direction) while playing a macro, re-rolled on each attempt. 0 disables it. Frame fixes are skipped while active, and high values will likely make the macro fail.",
+			"type": "int",
+			"default": 0,
+			"min": 0,
+			"max": 500,
+			"control": { "slider": true }
 		}
 	},
 	"resources": {

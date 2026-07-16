@@ -5,6 +5,7 @@
 #include "../ui/game/game_ui.hpp"
 #include "../ui/layers/record_layer.hpp"
 
+#include <cmath>
 #include <random>
 
 namespace {
@@ -145,6 +146,52 @@ void Bot::recordAction(int frame, int button, bool player2, bool hold) {
     }
 
     bot.replay.inputs.emplace_back(frame, button, player2, hold);
+}
+
+void Bot::regenerateClickRandomization() {
+    auto& bot = Bot::get();
+    bot.randomizedFrames.clear();
+
+    if (bot.clickRandomization <= 0 || bot.state != state::playing)
+        return;
+
+    double framerate = bot.replay.framerate > 0.f ? bot.replay.framerate : 240.f;
+    // Convert the ms jitter range into physics frames at the macro's framerate.
+    int maxOffsetFrames = static_cast<int>(
+        std::round(static_cast<double>(bot.clickRandomization) * framerate / 1000.0));
+    if (maxOffsetFrames <= 0)
+        return;
+
+    bot.randomizedFrames.reserve(bot.replay.inputs.size());
+
+    uint64_t previous = 0;
+    // Last randomized frame per (button, player) so a hold/release pair can never
+    // collapse onto the same frame or swap order.
+    std::unordered_map<int, uint64_t> lastPerKey;
+
+    for (auto const& input : bot.replay.inputs) {
+        int offset = geode::utils::random::generate(-maxOffsetFrames, maxOffsetFrames);
+        int64_t frame = static_cast<int64_t>(input.frame) + offset;
+
+        frame = std::max<int64_t>(frame, 0);
+        // Keep the overall sequence monotonic so playback consumes inputs in order.
+        frame = std::max<int64_t>(frame, static_cast<int64_t>(previous));
+
+        int key = input.button * 2 + (input.player2 ? 1 : 0);
+        if (auto it = lastPerKey.find(key); it != lastPerKey.end())
+            frame = std::max<int64_t>(frame, static_cast<int64_t>(it->second) + 1);
+
+        previous = static_cast<uint64_t>(frame);
+        lastPerKey[key] = previous;
+        bot.randomizedFrames.push_back(previous);
+    }
+}
+
+uint64_t Bot::getInputPlaybackFrame(size_t index) {
+    auto& bot = Bot::get();
+    if (index < bot.randomizedFrames.size())
+        return bot.randomizedFrames[index];
+    return bot.replay.inputs[index].frame;
 }
 
 void Bot::recordFrameFix(int frame, PlayerObject* p1, PlayerObject* p2) {

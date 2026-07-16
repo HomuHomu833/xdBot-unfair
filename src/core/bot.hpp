@@ -53,6 +53,13 @@ class Bot {
 
     static void recordAction(int frame, int button, bool player2, bool hold);
 
+    // Rebuilds the per-attempt randomized playback frames for click randomization.
+    static void regenerateClickRandomization();
+
+    // Frame an input should be applied at during playback: the randomized frame when
+    // click randomization is active, the recorded frame otherwise.
+    static uint64_t getInputPlaybackFrame(size_t index);
+
     static void recordFrameFix(int frame, PlayerObject* p1, PlayerObject* p2);
 
     static void autoSave(GJGameLevel* level, int number);
@@ -206,6 +213,10 @@ class Bot {
 
     size_t currentAction = 0;
     size_t currentFrameFix = 0;
+    // Max click timing jitter in milliseconds (0 = off) and the per-attempt
+    // randomized frame for each input in replay.inputs.
+    int clickRandomization = 0;
+    std::vector<uint64_t> randomizedFrames;
     bool frameFixes = false;
     bool inputFixes = false;
 

@@ -155,6 +155,7 @@ void Settings::loadRuntimeState(Bot& bot) {
     bot.lockDeltaRealTime = mod->getSettingValue<bool>("lock_delta_real_time");
     bot.lockDeltaMaxUpr = static_cast<int>(mod->getSettingValue<int64_t>("lock_delta_max_upr"));
     bot.lockDeltaUseVisualUpdates = mod->getSettingValue<bool>("lock_delta_use_visual_updates");
+    bot.clickRandomization = static_cast<int>(mod->getSettingValue<int64_t>("click_randomization"));
     bot.stopPlaying = mod->getSettingValue<bool>("auto_stop_playing");
 
     std::string accuracy = mod->getSettingValue<std::string>("macro_accuracy");

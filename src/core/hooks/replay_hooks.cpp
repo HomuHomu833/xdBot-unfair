@@ -57,6 +57,13 @@ $execute {
         bot.updater.resetStepState();
     }, mod);
 
+    geode::listenForSettingChanges<int64_t>("click_randomization", +[](int64_t value) {
+        if (Bot::isBootstrapping())
+            return;
+        Bot::get().clickRandomization = static_cast<int>(value);
+        Bot::regenerateClickRandomization();
+    }, mod);
+
     geode::listenForSettingChanges<bool>("auto_stop_playing", +[](bool value) {
         if (Bot::isBootstrapping())
             return;
@@ -151,6 +158,9 @@ class $modify(PlayLayer) {
         bot.currentFrameFix = 0;
         bot.restart = false;
         bot.respawnFrame = frame;
+
+        // Re-roll the click randomization offsets so every attempt gets fresh jitter.
+        Bot::regenerateClickRandomization();
 
         if (bot.state == state::recording)
             Bot::updateMacroInfo(this);
@@ -250,7 +260,7 @@ class $modify(BGLHook, GJBaseGameLayer) {
         m_fields->macroInput = true;
 
         while (bot.currentAction < bot.replay.inputs.size() &&
-               frame >= bot.replay.inputs[bot.currentAction].frame) {
+               frame >= Bot::getInputPlaybackFrame(bot.currentAction)) {
             auto input = bot.replay.inputs[bot.currentAction];
             if (frame != bot.respawnFrame) {
                 input.player2 = !input.player2;
@@ -272,6 +282,11 @@ class $modify(BGLHook, GJBaseGameLayer) {
                 return;
             }
         }
+
+        // Frame fixes would snap the players back to their recorded positions and undo
+        // the randomized input timing, so skip them while click randomization is active.
+        if (bot.clickRandomization > 0 && !bot.randomizedFrames.empty())
+            return;
 
         if (!(bot.frameFixes || bot.inputFixes) || !PlayLayer::get())
             return;
