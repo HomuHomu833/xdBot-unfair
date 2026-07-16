@@ -30,6 +30,15 @@ bool Bot::enabledIncompatibleGDSettings() {
     return bot_incompat::enabledIncompatibleGDSettings();
 }
 
+bool Bot::isAutoSafeModeActive() {
+#ifdef XDBOT_DISABLE_AUTO_SAFE_MODE
+    return false;
+#else
+    auto& bot = Bot::get();
+    return bot.safeMode && bot.mod->getSavedValue<bool>("macro_auto_safe_mode");
+#endif
+}
+
 float Bot::getTPS() {
     auto& bot = Bot::get();
     return bot.tpsEnabled ? bot.tps : 240.f;

@@ -152,12 +152,7 @@ class $modify(PlayLayer) {
         bool p4,
         bool p5
     ) {
-        auto& bot = Bot::get();
-
-        if (!bot.safeMode ||
-            !Mod::get()->getSavedValue<bool>(
-                "macro_auto_safe_mode"
-            )) {
+        if (!Bot::isAutoSafeModeActive()) {
 
             PlayLayer::showNewBest(
                 p0,
@@ -190,10 +185,7 @@ class $modify(PlayLayer) {
         bool wasTestMode =
             m_isTestMode;
 
-        if (bot.safeMode &&
-            bot.mod->getSavedValue<bool>(
-                "macro_auto_safe_mode"
-            )) {
+        if (Bot::isAutoSafeModeActive()) {
 
             m_isTestMode = true;
         }

@@ -37,6 +37,10 @@ class Bot {
 
     static bool enabledIncompatibleGDSettings();
 
+    // Whether auto safe mode is currently suppressing progress/new best. Always false
+    // when the mod is built with XDBOT_DISABLE_AUTO_SAFE_MODE defined.
+    static bool isAutoSafeModeActive();
+
     static float getTPS();
 
     static int getCurrentFrame(bool editor = false);

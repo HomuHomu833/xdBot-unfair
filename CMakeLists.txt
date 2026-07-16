@@ -13,6 +13,13 @@ project(xdBot2 VERSION 1.0.0)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
+# When enabled, auto safe mode is compiled out: bot completions save progress and
+# show the new best popup as normal. Configure with -DXDBOT_DISABLE_AUTO_SAFE_MODE=ON.
+option(XDBOT_DISABLE_AUTO_SAFE_MODE "Disable auto safe mode at compile time" OFF)
+if (XDBOT_DISABLE_AUTO_SAFE_MODE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE XDBOT_DISABLE_AUTO_SAFE_MODE)
+endif()
+
 if (NOT DEFINED ENV{GEODE_SDK})
     message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
 else()
